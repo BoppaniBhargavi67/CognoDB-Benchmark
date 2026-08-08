@@ -1,0 +1,2 @@
+database,clients,duration_sec,read_ratio,total_operations,reads,writes,errors,qps,p50_ms,p95_ms
+falkordb,10,30.09582769998815,0.8,24040,19111,4929,0,798.781819182513,10.319699998944998,26.24059998197481

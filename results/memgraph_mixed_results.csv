@@ -1,0 +1,2 @@
+database,clients,duration_sec,read_ratio,total_operations,reads,writes,errors,qps,p50_ms,p95_ms
+memgraph,10,30.0351218,0.8,17641,14138,3503,0,587.3457120456892,15.976300000001942,26.734699999998668

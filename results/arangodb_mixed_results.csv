@@ -1,0 +1,2 @@
+database,clients,duration_sec,read_ratio,total_operations,reads,writes,errors,qps,p50_ms,p95_ms
+arangodb,10,30.271180799987633,0.8,5569,4503,1066,0,183.97035902881842,50.87860001367517,68.63840000005439
