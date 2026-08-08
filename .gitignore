@@ -1,0 +1,10 @@
+venv/
+falkor_venv/
+
+.env
+
+__pycache__/
+*.pyc
+
+datasets/raw/
+datasets/processed/
