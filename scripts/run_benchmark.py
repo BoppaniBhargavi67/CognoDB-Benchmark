@@ -20,9 +20,25 @@ driver = GraphDatabase.driver(
 
 sample_ids = random.sample(range(22470), 100)
 
+page_types = [
+    "tvshow",
+    "government",
+    "company"
+]
+
 results = []
 
 with driver.session() as session:
+
+    print("Creating index...")
+
+    try:
+        session.run(
+            "CREATE INDEX ON :Page(page_type)"
+        ).consume()
+        print("Index created.")
+    except Exception:
+        print("Index already exists or could not be recreated.")
 
     print("Warm-up...")
 
@@ -44,8 +60,18 @@ with driver.session() as session:
 
             if query_name == "aggregation":
                 session.run(query).consume()
+
+            elif query_name == "indexed_lookup":
+                session.run(
+                    query,
+                    page_type=random.choice(page_types)
+                ).consume()
+
             else:
-                session.run(query, id=node_id).consume()
+                session.run(
+                    query,
+                    id=node_id
+                ).consume()
 
             end = time.perf_counter()
 
@@ -59,9 +85,7 @@ driver.close()
 
 os.makedirs("results", exist_ok=True)
 
-output_file = f"results/{DB_NAME}_results.csv"
-
-
+output_file = f"results/{DB_NAME}_indexed_results.csv"
 
 with open(output_file, "w", newline="") as f:
 

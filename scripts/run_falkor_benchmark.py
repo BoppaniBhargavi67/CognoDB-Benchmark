@@ -12,7 +12,23 @@ graph = db.select_graph("benchmark")
 
 sample_ids = random.sample(range(22470), 100)
 
+page_types = [
+    "tvshow",
+    "government",
+    "company"
+]
+
 results = []
+
+print("Creating index...")
+
+try:
+    graph.query(
+        "CREATE INDEX FOR (p:Page) ON (p.page_type)"
+    )
+    print("Index created.")
+except Exception:
+    print("Index already exists or could not be recreated.")
 
 print("Warm-up...")
 
@@ -34,6 +50,13 @@ for query_name, query in QUERIES.items():
 
         if query_name == "aggregation":
             graph.query(query)
+
+        elif query_name == "indexed_lookup":
+            graph.query(
+                query,
+                {"page_type": random.choice(page_types)}
+            )
+
         else:
             graph.query(
                 query,
@@ -50,7 +73,7 @@ for query_name, query in QUERIES.items():
 
 os.makedirs("results", exist_ok=True)
 
-output_file = f"results/{DB_NAME}_results.csv"
+output_file = f"results/{DB_NAME}_indexed_results.csv"
 
 with open(output_file, "w", newline="") as f:
 

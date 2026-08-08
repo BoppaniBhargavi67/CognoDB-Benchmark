@@ -7,7 +7,15 @@ import os
 client = ArangoClient(hosts="http://localhost:8529")
 db = client.db("benchmark", username="root", password="benchmark")
 
+pages = db.collection("pages")
+
 sample_ids = random.sample(range(22470), 100)
+
+page_types = [
+    "tvshow",
+    "government",
+    "company"
+]
 
 results = []
 
@@ -15,6 +23,12 @@ queries = {
     "point_lookup": """
         FOR n IN pages
         FILTER n.id == @id
+        RETURN n
+    """,
+
+    "indexed_lookup": """
+        FOR n IN pages
+        FILTER n.page_type == @page_type
         RETURN n
     """,
 
@@ -50,13 +64,24 @@ queries = {
     """
 }
 
+print("Creating index...")
+
+try:
+    pages.add_persistent_index(
+        fields=["page_type"],
+        name="page_type_index"
+    )
+    print("Index ready.")
+except Exception as e:
+    print("Index already exists or could not be created:", e)
 print("Warm-up...")
 
 for _ in range(10):
-    db.aql.execute(
+    cursor = db.aql.execute(
         queries["point_lookup"],
         bind_vars={"id": random.choice(sample_ids)}
     )
+    list(cursor)
 
 print("Running benchmarks...")
 
@@ -70,6 +95,13 @@ for query_name, query in queries.items():
 
         if query_name == "aggregation":
             cursor = db.aql.execute(query)
+
+        elif query_name == "indexed_lookup":
+            cursor = db.aql.execute(
+                query,
+                bind_vars={"page_type": random.choice(page_types)}
+            )
+
         else:
             cursor = db.aql.execute(
                 query,
@@ -88,7 +120,7 @@ for query_name, query in queries.items():
 
 os.makedirs("results", exist_ok=True)
 
-output_file = "results/arangodb_results.csv"
+output_file = "results/arangodb_indexed_results.csv"
 
 with open(output_file, "w", newline="") as f:
 
