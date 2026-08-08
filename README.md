@@ -48,7 +48,13 @@ The same graph dataset was loaded into all five databases.
 
 
 
-> Dataset source and exact relationship count should be stated here based on the original dataset used for the benchmark.
+>- Relationships: 171,002
+
+\- Dataset files:
+
+&#x20; - `datasets/raw/facebook\_large/musae\_facebook\_target.csv`
+
+&#x20; - `datasets/raw/facebook\_large/musae\_facebook\_edges.csv`.
 
 
 
@@ -340,43 +346,63 @@ Important benchmark scripts include:
 
 
 
-\## Data Loading
-
-
-
-Data loading was performed separately for each platform using the corresponding loader scripts.
-
-
-
-> Add the exact dataset source, relationship count, nodes/sec, relationships/sec and total load time for each platform before final submission.
-
-
-
-\## Resource / Footprint
-
-
-
-> Add the advertised or observed vCPU, RAM, storage and stored-data footprint for each platform. Mark unavailable measurements as `not observable`.
-
-
-
-\## Conclusion
-
-
-
-Under the measured workloads, FalkorDB showed the strongest overall latency and mixed-workload throughput. CognoDB demonstrated competitive performance, particularly against Neo4j, while completing the final mixed workload with zero errors.
-
-
-
-The benchmark emphasizes measured results and documented methodology rather than claiming a universal database winner.
-
-
-
 \## Data Loading Performance
 
 
 
-Dataset size:
+Data loading was performed separately for each platform using the corresponding loader scripts in `scripts/`.
+
+
+
+\### Dataset
+
+
+
+\- Source: Facebook Pages graph dataset used by this benchmark
+
+\- Nodes: 22,470
+
+\- Relationships: 171,002
+
+\- Relationship requirement: exceeds 100,000
+
+
+
+\### Loading Metrics
+
+
+
+| Database | Node Load Time | Nodes/sec | Relationship Load Time | Relationships/sec | Status |
+
+| -------- | -------------: | --------: | ----------------------: | ----------------: | ------ |
+
+| CognoDB | N/A | N/A | N/A | N/A | Remote connection was interrupted during timing |
+
+| Neo4j | N/A | N/A | N/A | N/A | Fresh loading timing was not captured |
+
+| Memgraph | N/A | N/A | N/A | N/A | Fresh loading timing was not captured |
+
+| FalkorDB | 56.634 s | 396.5 | 1475.471 s | 115.90 | Measured and verified |
+
+| ArangoDB | N/A | N/A | 6.668 s | 25,638.9 | Relationship reload timing completed |
+
+
+
+\### FalkorDB Loading Details
+
+
+
+FalkorDB loaded 22,470 nodes in 56.634 seconds, corresponding to approximately 396.5 nodes/sec.
+
+
+
+The complete 171,002 relationships were subsequently loaded in 1,475.471 seconds, corresponding to 115.90 relationships/sec.
+
+
+
+The final database state was verified after loading:
+
+
 
 \- Nodes: 22,470
 
@@ -384,95 +410,65 @@ Dataset size:
 
 
 
-The dataset exceeds the assignment requirement of at least 100,000 relationships.
+Relationship loading was substantially slower than node loading because each relationship requires matching its source and destination nodes before creating the `LINKS\_TO` relationship.
 
 
 
-Loading was performed using the database-specific loader scripts in `scripts/`.
+The relationship timing was measured using a separate batched measurement script:
 
 
 
-| Database | Node Load Time | Nodes/sec | Relationship Load Time | Relationships/sec | Status |
-
-|---|---:|---:|---:|---:|---|
-
-| CognoDB | Not reliably measured | N/A | Not reliably measured | N/A | Remote connection interrupted during measurement |
-
-| Neo4j | Not reliably measured | N/A | Not reliably measured | N/A | Existing benchmark load completed previously; fresh timing not captured |
-
-| Memgraph | Not reliably measured | N/A | Not reliably measured | N/A | Fresh timing not captured |
-
-| FalkorDB | 56.634 s | 396.5 | Not reliably measured | N/A | Relationship measurement stopped because the loader was taking too long |
-
-| ArangoDB | Not reliably measured | N/A | 6.668 s | 25,638.9 | Relationship reload measurement completed |
+`scripts/measure\_falkor\_relationship\_load.py`
 
 
 
-Load-throughput values are reported only where a measurement completed successfully. No estimated or fabricated values are used.
+The existing query and mixed-workload benchmark results were not modified.
 
 
 
-\## Environment and Resource Notes
+\### Loading Measurement Caveats
 
 
 
-All databases were benchmarked from the same Windows development environment.
+Only completed and reliable measurements are reported. `N/A` is used where a complete timing measurement was not captured rather than estimating or fabricating values.
 
 
 
-\- Host operating system: Windows with WSL2 used by Docker database containers.
+The CognoDB loading measurement was interrupted by a remote connection failure. Fresh loading timings for Neo4j and Memgraph were not captured. The ArangoDB relationship reload timing was successfully measured.
 
-\- Host available cores observed: 12.
 
-\- Host available physical memory observed: approximately 8 GB.
+
+These limitations are explicitly documented to keep the benchmark results transparent and reproducible.
+
+
+
+\## Resource / Footprint
+
+
+
+The benchmark was executed from the same client machine for all database systems.
+
+
+
+\- Host environment: Windows with WSL2/Docker used for local database containers.
+
+\- Available CPU observed: 12 cores.
+
+\- Available physical memory observed: approximately 8 GB.
 
 \- Memgraph, FalkorDB and ArangoDB were run as local Docker containers.
 
-\- Neo4j Community was run locally.
+\- Neo4j was run locally.
 
 \- CognoDB was accessed as a remote/cloud database.
 
-\- Exact cloud-provider CPU/RAM/storage allocation for CognoDB was not observable from the benchmark client and is therefore not claimed.
+\- Exact CognoDB cloud resource allocation was not observable from the benchmark client.
 
-\- Docker container resource limits were not explicitly imposed, so the local databases should not be interpreted as perfectly hardware-isolated comparisons.
-
-
-
-\## Benchmark Limitations and Fairness
+\- No explicit Docker CPU or memory limits were imposed on the local database containers.
 
 
 
-The benchmark uses the same logical dataset and equivalent workloads across all platforms, but database deployment models are not identical.
-
-
-
-CognoDB was accessed remotely while the other comparison systems were locally hosted. Network latency may therefore affect CognoDB measurements.
-
-
-
-Query syntax and execution engines differ between Cypher, FalkorDB/RedisGraph-compatible queries and ArangoDB AQL. The benchmark therefore compares equivalent logical operations rather than identical query syntax.
-
-
-
-All measured query workloads included warm-up before measurement and used 100 iterations.
-
-
-
-The final mixed workload used:
-
-\- 10 concurrent clients
-
-\- approximately 30 seconds
-
-\- 80% reads
-
-\- 20% writes
-
-\- zero errors for all five final database runs
-
-
-
-An earlier ArangoDB mixed-workload run produced errors because of a benchmark-script bind-parameter issue. The script was corrected and the final ArangoDB run completed with zero errors. The corrected result is the one included in the final results.
+Because deployment models and resource allocations were not identical, the results should be interpreted as measurements of the tested configurations rather than a universal hardware-normalized comparison.
 
 
 
@@ -480,31 +476,29 @@ An earlier ArangoDB mixed-workload run produced errors because of a benchmark-sc
 
 
 
-Run the benchmark scripts from the repository root after installing the pinned dependencies in `requirements.txt`.
+To reproduce the benchmark:
 
 
 
-Credentials and connection strings are supplied through environment variables and must not be committed to the repository.
+1\. Clone the repository.
+
+2\. Create and activate a Python virtual environment.
+
+3\. Install the pinned dependencies from `requirements.txt`.
+
+4\. Configure database credentials through environment variables.
+
+5\. Load the dataset using the appropriate loader scripts.
+
+6\. Run the benchmark scripts in `scripts/`.
+
+7\. Run the analysis scripts to generate summary CSV files.
+
+8\. Run the plotting scripts to generate comparison charts.
 
 
 
-Important analysis and plotting scripts:
-
-
-
-\- `scripts/analyze\_results.py`
-
-\- `scripts/analyze\_mixed\_results.py`
-
-\- `scripts/compare\_results.py`
-
-\- `scripts/plot\_comparison.py`
-
-\- `scripts/plot\_mixed\_results.py`
-
-
-
-Generated results are stored under `results/`.
+Secrets and database credentials must not be committed to the repository.
 
 
 
@@ -512,13 +506,13 @@ Generated results are stored under `results/`.
 
 
 
-FalkorDB achieved the highest measured throughput and lowest latency in the tested workloads.
+Under the measured workloads, FalkorDB showed the strongest overall latency and mixed-workload throughput.
 
 
 
-CognoDB achieved 429.38 queries/sec in the final mixed workload with zero errors and outperformed Neo4j's 402.21 queries/sec in the same test.
+CognoDB achieved 429.38 queries/sec in the final mixed workload with zero errors and outperformed Neo4j's 402.21 queries/sec in mixed-workload throughput.
 
 
 
-These results describe the measured benchmark environment and should not be interpreted as a universal ranking of database systems.
+These results describe the tested benchmark environment and should not be interpreted as a universal ranking of database systems. Performance can vary with workload, deployment configuration, hardware resources, query implementation and network conditions.
 
