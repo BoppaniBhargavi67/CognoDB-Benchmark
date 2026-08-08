@@ -370,3 +370,155 @@ Under the measured workloads, FalkorDB showed the strongest overall latency and 
 
 The benchmark emphasizes measured results and documented methodology rather than claiming a universal database winner.
 
+
+
+\## Data Loading Performance
+
+
+
+Dataset size:
+
+\- Nodes: 22,470
+
+\- Relationships: 171,002
+
+
+
+The dataset exceeds the assignment requirement of at least 100,000 relationships.
+
+
+
+Loading was performed using the database-specific loader scripts in `scripts/`.
+
+
+
+| Database | Node Load Time | Nodes/sec | Relationship Load Time | Relationships/sec | Status |
+
+|---|---:|---:|---:|---:|---|
+
+| CognoDB | Not reliably measured | N/A | Not reliably measured | N/A | Remote connection interrupted during measurement |
+
+| Neo4j | Not reliably measured | N/A | Not reliably measured | N/A | Existing benchmark load completed previously; fresh timing not captured |
+
+| Memgraph | Not reliably measured | N/A | Not reliably measured | N/A | Fresh timing not captured |
+
+| FalkorDB | 56.634 s | 396.5 | Not reliably measured | N/A | Relationship measurement stopped because the loader was taking too long |
+
+| ArangoDB | Not reliably measured | N/A | 6.668 s | 25,638.9 | Relationship reload measurement completed |
+
+
+
+Load-throughput values are reported only where a measurement completed successfully. No estimated or fabricated values are used.
+
+
+
+\## Environment and Resource Notes
+
+
+
+All databases were benchmarked from the same Windows development environment.
+
+
+
+\- Host operating system: Windows with WSL2 used by Docker database containers.
+
+\- Host available cores observed: 12.
+
+\- Host available physical memory observed: approximately 8 GB.
+
+\- Memgraph, FalkorDB and ArangoDB were run as local Docker containers.
+
+\- Neo4j Community was run locally.
+
+\- CognoDB was accessed as a remote/cloud database.
+
+\- Exact cloud-provider CPU/RAM/storage allocation for CognoDB was not observable from the benchmark client and is therefore not claimed.
+
+\- Docker container resource limits were not explicitly imposed, so the local databases should not be interpreted as perfectly hardware-isolated comparisons.
+
+
+
+\## Benchmark Limitations and Fairness
+
+
+
+The benchmark uses the same logical dataset and equivalent workloads across all platforms, but database deployment models are not identical.
+
+
+
+CognoDB was accessed remotely while the other comparison systems were locally hosted. Network latency may therefore affect CognoDB measurements.
+
+
+
+Query syntax and execution engines differ between Cypher, FalkorDB/RedisGraph-compatible queries and ArangoDB AQL. The benchmark therefore compares equivalent logical operations rather than identical query syntax.
+
+
+
+All measured query workloads included warm-up before measurement and used 100 iterations.
+
+
+
+The final mixed workload used:
+
+\- 10 concurrent clients
+
+\- approximately 30 seconds
+
+\- 80% reads
+
+\- 20% writes
+
+\- zero errors for all five final database runs
+
+
+
+An earlier ArangoDB mixed-workload run produced errors because of a benchmark-script bind-parameter issue. The script was corrected and the final ArangoDB run completed with zero errors. The corrected result is the one included in the final results.
+
+
+
+\## Reproducibility
+
+
+
+Run the benchmark scripts from the repository root after installing the pinned dependencies in `requirements.txt`.
+
+
+
+Credentials and connection strings are supplied through environment variables and must not be committed to the repository.
+
+
+
+Important analysis and plotting scripts:
+
+
+
+\- `scripts/analyze\_results.py`
+
+\- `scripts/analyze\_mixed\_results.py`
+
+\- `scripts/compare\_results.py`
+
+\- `scripts/plot\_comparison.py`
+
+\- `scripts/plot\_mixed\_results.py`
+
+
+
+Generated results are stored under `results/`.
+
+
+
+\## Conclusion
+
+
+
+FalkorDB achieved the highest measured throughput and lowest latency in the tested workloads.
+
+
+
+CognoDB achieved 429.38 queries/sec in the final mixed workload with zero errors and outperformed Neo4j's 402.21 queries/sec in the same test.
+
+
+
+These results describe the measured benchmark environment and should not be interpreted as a universal ranking of database systems.
+
